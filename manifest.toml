@@ -1,0 +1,125 @@
+# The cloud man: a headless body rig with swappable heads.
+#
+# Bodies are cut from sprite sheets with their drawn heads removed, and each
+# frame records its neck and ground point. Heads are cut once and composited
+# over any body at runtime, so adding an action (a new sheet) works with every
+# head, and adding a head works with every action.
+#
+# Rebuild after editing (on the Mac; needs uv):
+#   uv run --python 3.12 --with "rembg[cpu]" --with pillow --with numpy \
+#       --with scipy --with scikit-image build.py
+# Output: dist/{bodies.webp, heads.webp, character.json}
+# Frame ids are "<sheet>.<row>.<column>", 1-based, as the sheet reads.
+
+# A standing body, collar to soles, in atlas px. Every sheet is scaled to it.
+body_height = 340
+
+# ---- heads -------------------------------------------------------------------
+# width: display width in standing-body heights. anchor: the point of the head
+# image (fractions) that sits on the neck. derive: make a head from another
+# (same size, anchor, rain and drape) with an RGB tint.
+
+[heads.cloud]
+source = "sources/cloud-portrait.jpg"
+crop = [225, 160, 830, 455]     # the anvil and its rain, stopping above the collar
+width = 0.56
+anchor = [0.5, 1.0]
+rain = true                     # keep the translucent rain under the anvil
+drape = true                    # hang lower where a sheet's anvil sat on the shoulders
+
+[heads.storm]
+derive = "cloud"
+tint = [0.42, 0.44, 0.52]       # RGB multipliers: a dark, cool anvil
+
+[heads.sun]
+source = "sources/video-sun.png"
+width = 0.34
+anchor = [0.5, 0.93]
+cutout = "disc"
+
+[heads.moon]
+source = "sources/video-moon.png"
+width = 0.34
+anchor = [0.5, 0.93]
+cutout = "disc"
+
+# ---- sheets --------------------------------------------------------------------
+# layout: "grid" (frames separated by clear paper), "touching" (figures overlap,
+#   split by flooding out from each torso), or "single" (one figure).
+# head: how to remove the drawn head. "gap" = it floats above the collar;
+#   "vest" = it sits on the shoulders, so cut at the top of the waistcoat.
+# scale: frame whose body is standing height, or "median" of all frames.
+# neck_drop: for draping heads, move the anchor down by this many standing-body
+#   heights (vest-cut sheets: the anvil's rain falls over the shoulders, as drawn).
+# facing: which way the figures face, 1 = right, -1 = left, 0 = camera.
+# recolour: { bad = good } match a frame's trousers to another frame's colour.
+
+[sheets.portrait]
+source = "sources/cloud-portrait.jpg"
+layout = "single"
+head = "gap"
+scale = "portrait.1.1"
+facing = 0
+
+[sheets.walk]
+source = "sources/walk-sheet.png"
+layout = "touching"
+head = "gap"
+scale = "median"
+facing = 1
+recolour = { "walk.2.2" = "walk.2.5" }  # the only clean passing pose, drawn grey
+
+[sheets.jump]
+source = "sources/jump-sheet.png"
+layout = "grid"
+head = "vest"
+scale = "jump.1.7"
+neck_drop = 0.09
+facing = 0
+
+[sheets.kneel]
+source = "sources/video-kneel.png"
+layout = "single"
+head = "gap"
+scale = 0.8                     # kneeling: 0.8 of a standing body's height
+facing = 1
+
+# ---- actions -------------------------------------------------------------------
+# frames play in order at fps; loop or hold the last frame.
+
+[actions.idle]
+frames = ["portrait.1.1"]
+fps = 1
+loop = true
+
+[actions.walk]
+# The sheet's frames are out of order and mostly one pose; sorted by gait
+# phase they are: load (front foot flat, back on its toes: 2.1, 2.4-2.11),
+# toe-off (2.3), passing (2.2, 1.9), swing (1.11), reach (1.1-1.8, 1.10).
+# One step is load > toe-off > passing > swing > reach; near-duplicates
+# alternate between steps for a hand-drawn wobble. Grey-trousered frames are
+# unused except 2.2, recoloured above.
+# plant: the shoe carrying his weight in each frame ("back", "front", or "low"
+# for whichever is on the ground). The build turns it into per-frame travel
+# that keeps that shoe still, so he doesn't skate.
+frames = ["walk.2.5", "walk.2.3", "walk.2.2", "walk.1.11", "walk.1.3",
+          "walk.2.7", "walk.2.3", "walk.2.2", "walk.1.11", "walk.1.4"]
+plant  = ["front",    "front",    "low",      "back",      "back",
+          "front",    "front",    "low",      "back",      "back"]
+fps = 8
+loop = true
+
+[actions.jump]
+frames = ["jump.1.1", "jump.1.3", "jump.1.4", "jump.1.5", "jump.1.6", "jump.1.7"]
+fps = 8
+loop = false
+
+[actions.jump-away]
+frames = ["jump.2.1", "jump.2.3", "jump.2.4", "jump.2.5", "jump.2.6", "jump.2.7"]
+fps = 8
+loop = false
+
+[actions.kneel]
+frames = ["kneel.1.1"]
+fps = 1
+loop = true
