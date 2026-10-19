@@ -26,6 +26,8 @@ dist/             generated, committed, served by the pages that use him
   heads.webp      every head
   character.json  frame boxes, neck/ground points, head anchors, actions
 cloudman.js       runtime: loads dist/, runs his behaviours, draws him on a canvas
+sprites/          the same animations as plain transparent frames, no rig needed
+                  (plus the climb); see sprites/README.md
 ```
 
 ## Using him in a project
