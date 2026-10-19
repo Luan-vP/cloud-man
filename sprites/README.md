@@ -13,6 +13,7 @@ with it. `preview.gif` in each animated set plays it.
 | set | frames | canvas | anchor | at the anchor |
 |---|---|---|---|---|
 | `climb/` | 11 | 388 × 642 | (219, 274) | the ledge's top-left corner |
+| `climb-headless/` | 11 | 388 × 642 | (219, 274) | the ledge's top-left corner |
 | `walk/` | 10, looping | 186 × 366 | (92, 338) | the floor, under his neck |
 | `jump/` | 6 | 224 × 460 | (114, 429) | the floor, under his neck |
 | `jump-away/` | 6 | 228 × 433 | (112, 401) | the floor, under his neck |
@@ -30,6 +31,22 @@ Frames 01–03 are on the floor, 04–10 hold the ledge, 11 stands on top. From
 
 The sheet turns from a side view (01–03) to a back view in front of the wall
 (04 on), so 04–11 are shifted 40 sheet px left to bring his grab to the corner.
+
+## climb-headless
+
+The climb with its drawn anvil cut away, so the rig's other heads (sun, moon)
+can be worn while climbing. `necks.json` lists each frame's neck: the canvas
+px where a head's `anchor` goes, the same as a rig frame's `neck`. Heads from
+`dist/heads.webp` are in rig px, so draw them at `bodyH / bodyHeight` (215 /
+340 at this set's scale). The cloud head should wear `climb/` instead, whose
+drawn anvils match.
+
+Where an arm crosses the anvil (02–06) only its cool grey core is cut, so the
+sleeves under it stay; a little of the wings is left there and a worn head
+covers most of it. Made by `headless.py` (no background removal needed):
+
+    uv run --python 3.12 --with pillow --with numpy --with scipy --with scikit-image \
+        sprites/headless.py --preview /tmp/climb-heads.png
 
 ## walk
 
