@@ -99,7 +99,9 @@ of every sheet as `<sheet>.<row>.<col>.png`, used or not, for choosing frames.
 
 Add `[heads.<name>]` with a source and crop (or `derive` from another head with
 a `tint`), a `width` and the `anchor` that sits on the neck. Pages wear it by passing its
-name to `draw()`.
+name to `draw()`. A head can also have a `behind` layer, drawn behind the body:
+the sun's rays are one (`cutout = "rays"`), so his collar sits in front of them
+as it does in the video.
 
 ## Notes on the current art
 

@@ -82,28 +82,34 @@ export class CloudMan {
     const flip = f.facing && f.facing !== this.dir ? -1 : 1;
     const gx = ox + this.x, gy = floorY;
     const [bx, by, bw, bh] = f.box;
+
+    // Head over the neck: draping heads (the cloud) sit lower where the sheet's
+    // anvil rested on the shoulders; all of them bob a little. A head with a
+    // `behind` layer (the sun's rays) has it drawn behind the body.
+    const hd = char.heads[head];
+    const drop = hd.drape ? f.drop : 0;
+    const nx = gx + (f.neck[0] - f.ground[0]) * s * flip;
+    const ny = gy + (f.neck[1] + drop - f.ground[1]) * s + Math.sin(now / 600) * this.bodyH * 0.012;
+    const [, , hw, hh] = hd.box;
+    const drawHead = ([hx, hy]) => {
+      ctx.save();
+      ctx.translate(nx, ny);
+      ctx.scale(s, s);
+      if (head === "sun") {  // slow spin about the disc's centre
+        const cy = hh / 2 - hd.anchor[1];
+        ctx.translate(0, cy); ctx.rotate(now / 4000); ctx.translate(0, -cy);
+      } else if (this.state === "sleep") ctx.rotate(0.3);
+      ctx.drawImage(char.headAtlas, hx, hy, hw, hh, -hd.anchor[0], -hd.anchor[1], hw, hh);
+      ctx.restore();
+    };
+
+    if (hd.behind) drawHead(hd.behind);
     ctx.save();
     ctx.translate(gx, gy);
     ctx.scale(flip * s, s);
     ctx.drawImage(char.bodyAtlas, bx, by, bw, bh, -f.ground[0], -f.ground[1], bw, bh);
     ctx.restore();
-
-    // Head over the neck: draping heads (the cloud) sit lower where the sheet's
-    // anvil rested on the shoulders; all of them bob a little.
-    const hd = char.heads[head];
-    const drop = hd.drape ? f.drop : 0;
-    const nx = gx + (f.neck[0] - f.ground[0]) * s * flip;
-    const ny = gy + (f.neck[1] + drop - f.ground[1]) * s + Math.sin(now / 600) * this.bodyH * 0.012;
-    const [hx, hy, hw, hh] = hd.box;
-    ctx.save();
-    ctx.translate(nx, ny);
-    ctx.scale(s, s);
-    if (head === "sun") {  // slow spin about the disc's centre
-      const cy = hh / 2 - hd.anchor[1];
-      ctx.translate(0, cy); ctx.rotate(now / 4000); ctx.translate(0, -cy);
-    } else if (this.state === "sleep") ctx.rotate(0.3);
-    ctx.drawImage(char.headAtlas, hx, hy, hw, hh, -hd.anchor[0], -hd.anchor[1], hw, hh);
-    ctx.restore();
+    drawHead(hd.box);
 
     return { x: nx, y: ny, top: ny - hd.anchor[1] * s, bottom: ny + (hh - hd.anchor[1]) * s, halfWidth: hw * s / 2 };
   }
