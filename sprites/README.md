@@ -27,8 +27,8 @@ About 7–8 fps reads well throughout.
 Jumps up to a ledge, grabs it, pulls himself up and stands on it:
 prepare, jump, reach, grab, hang, stabilise, pull-up, chest-over, knee-up,
 stand-up, balance. The floor is at y = 609, so the ledge is 335 px high.
-Frames 01–03 are on the floor, 04–10 hold the ledge, 11 stands on top. From
-`sources/climb-sheet.png`, drawn heads kept.
+Frames 01–03 are on the floor, 04–10 hold the ledge, 11 stands on top. From a
+climb sheet that isn't kept, drawn heads kept.
 
 The sheet turns from a side view (01–03) to a back view in front of the wall
 (04 on), so 04–11 are shifted 40 sheet px left to bring his grab to the corner.
@@ -63,15 +63,3 @@ mirrored to face the way the rest of its set does. From
 A single still from the cloud flipbook video (`sources/video-kneel.png`),
 so its waistcoat is greener than the watercolour sheets', and it's upscaled
 from a small source.
-
-## Re-cutting
-
-`extract.py` made all of these, once, from `sources/`. It reuses
-`build.py`'s cutting helpers (the walk is cut exactly as the rig cuts it) and
-hand-placed boxes clear the stone that background removal kept in the climb.
-
-```sh
-uv run --python 3.12 --with "rembg[cpu]" --with pillow --with numpy --with scipy \
-    --with scikit-image sprites/extract.py [climb walk jump-right jump-left jump-away-right jump-away-left kneel] \
-    --preview /tmp
-```
