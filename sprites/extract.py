@@ -185,7 +185,8 @@ def walk():
 def jump(row):
     """sources/jump-sheet.png, one row: 1 side view, 2 back view. Drawn heads kept.
     Anchored on the row's floor under his neck, so airborne frames keep their height.
-    Takeoff (x.2) is skipped: it's a sideways run the wrong way."""
+    Takeoff (x.2) is skipped: it's a sideways run the wrong way. The back view's
+    recovery (2.7) is mirrored to face the way the rest of its row does."""
     rgb = np.array(Image.open(ROOT / "sources/jump-sheet.png").convert("RGB"))
     names = {1: "prepare", 3: "rising", 4: "peak", 5: "falling", 6: "landing", 7: "recovery"}
     cuts, ground, ref = [], 0, None
@@ -196,6 +197,8 @@ def jump(row):
         x0, y0 = origin
         x1, y1 = min(rgb.shape[1], box[2] + 24), min(rgb.shape[0], box[3] + 24)
         img = cut(rgb, (x0, y0, x1, y1))
+        if r == 2 and c == 7:   # mirrored about his neck, so the anchor stays put
+            img, neck = img.transpose(Image.FLIP_LEFT_RIGHT), (img.width - neck[0], neck[1])
         if r == 1 and c == 7:
             ref = soles - neck[1]   # the rig's standing frame (manifest: scale = "jump.1.7")
         if r == row:

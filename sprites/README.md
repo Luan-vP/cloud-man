@@ -50,7 +50,9 @@ anvil from `cloud-portrait.jpg` instead.
 A jump on the spot, side view (`jump/`) and from behind (`jump-away/`):
 prepare, rising, peak, falling, landing, recovery. Airborne frames keep
 their height above the floor. The sheet's "takeoff" frames are left out (a
-sideways run the wrong way). From `sources/jump-sheet.png`, drawn heads kept.
+sideways run the wrong way), and the back view's recovery is mirrored to
+face the way the rest of `jump-away/` does. From `sources/jump-sheet.png`,
+drawn heads kept.
 
 ## kneel
 
