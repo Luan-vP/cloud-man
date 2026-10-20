@@ -255,6 +255,39 @@ def sticker(rgba):
 
 # ---- heads --------------------------------------------------------------------------------
 
+def rays(src, spec):
+    """The sun with its rays, glowing on the video's dark frame: opacity is how
+    much brighter than the frame a pixel is, and the frame's colour is taken
+    back out, so the rays keep their colour over any background. Square and
+    centred on the disc, so it spins about the middle (cloudman.js).
+    Returns (disc, glow): the disc gets the sticker edge, the glow (rays and
+    all) is drawn behind the body, as the video has him in front of them."""
+    cx, cy, r = spec["disc"]
+    n = int(np.ceil(spec["reach"])) + 2
+    rgb = np.pad(np.array(src).astype(float), ((n, n), (n, n), (0, 0)), mode="edge")
+    ox, oy = round(cx) + n, round(cy) + n
+    sq = rgb[oy - n:oy + n + 1, ox - n:ox + n + 1]
+    yy, xx = np.mgrid[-n:n + 1, -n:n + 1].astype(float)
+    d = np.hypot(xx, yy)
+    # Below the disc his collar and the frame's edge hide the rays: borrow the
+    # ones above, the sun turned half round (it spins, so the repeat never shows).
+    below = np.clip((yy / np.maximum(d, 1) - 0.35) / 0.25, 0, 1) * np.clip((d - r * 1.2) / 6, 0, 1)
+    sq = sq * (1 - below[..., None]) + sq[::-1, ::-1] * below[..., None]
+    lo, hi = spec.get("glow", (95, 235))   # red level of the frame, and of a full ray
+    a = np.clip((sq[:, :, 0] - lo) / (hi - lo), 0, 1)
+    a[sq[:, :, 1] > sq[:, :, 0]] = 0        # green: the TV's bezel, a bat's wing
+    a *= np.clip((spec["reach"] - d) / (spec["reach"] * 0.12), 0, 1)
+    a = np.maximum(a, np.clip(r + 2 - d, 0, 1))
+    frame = np.median(sq[(d > r * 1.2) & (a == 0) & (sq[:, :, 0] > sq[:, :, 1])], 0)  # the warm haze, not the bezel
+    out = np.clip((sq - (1 - a[..., None]) * frame) / np.maximum(a[..., None], 1e-3), 0, 255)
+    # Unmixing the faintest glow mostly amplifies noise: lean it to the sun's orange.
+    t = np.clip(a * 3, 0, 1)[..., None]
+    out = out * t + np.array([255, 160, 50]) * (1 - t)
+    disc = np.clip(r - d, 0, 1)
+    return (Image.fromarray(np.dstack([out, disc * 255]).astype(np.uint8)),
+            Image.fromarray(np.dstack([out, a * 255]).astype(np.uint8)))
+
+
 def build_head(spec, heads):
     if "derive" in spec:
         base = heads[spec["derive"]]["img"]
@@ -267,6 +300,8 @@ def build_head(spec, heads):
     src = Image.open(HERE / spec["source"]).convert("RGB")
     if "crop" in spec:
         src = src.crop(spec["crop"])
+    if spec.get("cutout") == "rays":
+        return rays(src, spec)
     a = cut_out(src)
     rain = None
     if spec.get("rain"):
@@ -398,6 +433,9 @@ def main():
         size = (w, round(first.height * w / first.width))
         img = tuple(i.resize(size, Image.LANCZOS) for i in img) if isinstance(img, tuple) \
             else img.resize(size, Image.LANCZOS)
+        if src.get("cutout") == "rays":   # (disc, glow): the glow goes behind the body
+            img, glow = img
+            heads[name]["behind"] = ImageOps.expand(glow, PAD, fill=(0, 0, 0, 0))
         st = head_sticker(img)
         ax, ay = src["anchor"]
         head_meta[name] = {"anchor": [round(PAD + ax * size[0], 1), round(PAD + ay * size[1], 1)],
@@ -406,7 +444,12 @@ def main():
 
     OUT.mkdir(parents=True, exist_ok=True)
     body_atlas, body_boxes = pack({f: bodies[f] for f in frames if f in wanted})
-    head_atlas, head_boxes = pack({n: h["sticker"] for n, h in heads.items()}, width=1024)
+    head_atlas, head_boxes = pack({**{n: h["sticker"] for n, h in heads.items()},
+                                   **{f"{n}.behind": h["behind"] for n, h in heads.items() if "behind" in h}},
+                                  width=1024)
+    for n in heads:
+        if f"{n}.behind" in head_boxes:
+            head_meta[n]["behind"] = head_boxes.pop(f"{n}.behind")
     body_atlas.save(OUT / "bodies.webp", quality=88, method=6)
     head_atlas.save(OUT / "heads.webp", quality=90, method=6)
     actions = {}
@@ -444,12 +487,16 @@ def preview(path):
             gx, gy = c * cell_w + cell_w / 2, (r + 1) * cell_h - 20  # ground point
             ox, oy = gx - f["ground"][0], gy - f["ground"][1]
             body = bodies.crop((bx, by, bx + bw, by + bh))
+            drop = f["drop"] if hd["drape"] else 0
+            at = (round(ox + f["neck"][0] - hd["anchor"][0]), round(oy + f["neck"][1] + drop - hd["anchor"][1]))
+            if "behind" in hd:
+                hx, hy, hw, hh = hd["behind"]
+                hi = heads.crop((hx, hy, hx + hw, hy + hh))
+                sheet.paste(hi, at, hi)
             sheet.paste(body, (round(ox), round(oy)), body)
             hx, hy, hw, hh = hd["box"]
             hi = heads.crop((hx, hy, hx + hw, hy + hh))
-            drop = f["drop"] if hd["drape"] else 0
-            sheet.paste(hi, (round(ox + f["neck"][0] - hd["anchor"][0]),
-                             round(oy + f["neck"][1] + drop - hd["anchor"][1])), hi)
+            sheet.paste(hi, at, hi)
     sheet.save(path)
     print("preview", path, sheet.size)
 

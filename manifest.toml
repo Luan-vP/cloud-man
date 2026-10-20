@@ -17,7 +17,9 @@ body_height = 340
 # ---- heads -------------------------------------------------------------------
 # width: display width in standing-body heights. anchor: the point of the head
 # image (fractions) that sits on the neck. derive: make a head from another
-# (same size, anchor, rain and drape) with an RGB tint.
+# (same size, anchor, rain and drape) with an RGB tint. cutout: "disc" keeps
+# just a round disc; "rays" keeps a glowing disc's rays too, drawn behind the
+# body (needs disc and reach).
 
 [heads.cloud]
 source = "sources/cloud-portrait.jpg"
@@ -33,9 +35,11 @@ tint = [0.42, 0.44, 0.52]       # RGB multipliers: a dark, cool anvil
 
 [heads.sun]
 source = "sources/video-sun.png"
-width = 0.34
-anchor = [0.5, 0.93]
-cutout = "disc"
+cutout = "rays"                 # the disc and its rays (cutout = "disc": just the disc)
+disc = [138.5, 170.5, 62]       # the disc's centre x, y and radius, source px
+reach = 122                     # how far the rays reach from its centre, source px
+width = 0.68                    # rays and all: the disc is 0.34, as it was
+anchor = [0.5, 0.71]
 
 [heads.moon]
 source = "sources/video-moon.png"
