@@ -14,8 +14,10 @@ with it. `preview.gif` in each animated set plays it.
 |---|---|---|---|---|
 | `climb/` | 11 | 388 × 642 | (219, 274) | the ledge's top-left corner |
 | `walk/` | 10, looping | 186 × 366 | (92, 338) | the floor, under his neck |
-| `jump/` | 6 | 224 × 460 | (114, 429) | the floor, under his neck |
-| `jump-away/` | 6 | 228 × 433 | (112, 401) | the floor, under his neck |
+| `jump-right/` | 6 | 224 × 460 | (114, 429) | the floor, under his neck |
+| `jump-left/` | 6 | 224 × 460 | (110, 429) | the floor, under his neck |
+| `jump-away-right/` | 6 | 228 × 433 | (112, 401) | the floor, under his neck |
+| `jump-away-left/` | 6 | 228 × 433 | (116, 401) | the floor, under his neck |
 | `kneel/` | 1 | 331 × 331 | (103, 291) | the floor, under his neck |
 
 About 7–8 fps reads well throughout.
@@ -25,8 +27,8 @@ About 7–8 fps reads well throughout.
 Jumps up to a ledge, grabs it, pulls himself up and stands on it:
 prepare, jump, reach, grab, hang, stabilise, pull-up, chest-over, knee-up,
 stand-up, balance. The floor is at y = 609, so the ledge is 335 px high.
-Frames 01–03 are on the floor, 04–10 hold the ledge, 11 stands on top. From
-`sources/climb-sheet.png`, drawn heads kept.
+Frames 01–03 are on the floor, 04–10 hold the ledge, 11 stands on top. From a
+climb sheet that isn't kept, drawn heads kept.
 
 The sheet turns from a side view (01–03) to a back view in front of the wall
 (04 on), so 04–11 are shifted 40 sheet px left to bring his grab to the corner.
@@ -47,24 +49,17 @@ anvil from `cloud-portrait.jpg` instead.
 
 ## jump, jump-away
 
-A jump on the spot, side view (`jump/`) and from behind (`jump-away/`):
-prepare, rising, peak, falling, landing, recovery. Airborne frames keep
-their height above the floor. The sheet's "takeoff" frames are left out (a
-sideways run the wrong way). From `sources/jump-sheet.png`, drawn heads kept.
+A jump on the spot, side view (`jump-right/`, `jump-left/`) and from behind
+(`jump-away-right/`, `jump-away-left/`): prepare, rising, peak, falling,
+landing, recovery. The `-right` sets are for when he's travelling right; the
+`-left` sets are the same frames mirrored, for travelling left. Airborne
+frames keep their height above the floor. The sheet's "takeoff" frames are
+left out (a sideways run the wrong way), and the back view's recovery is
+mirrored to face the way the rest of its set does. From
+`sources/jump-sheet.png`, drawn heads kept.
 
 ## kneel
 
 A single still from the cloud flipbook video (`sources/video-kneel.png`),
 so its waistcoat is greener than the watercolour sheets', and it's upscaled
 from a small source.
-
-## Re-cutting
-
-`extract.py` made all of these, once, from `sources/`. It reuses
-`build.py`'s cutting helpers (the walk is cut exactly as the rig cuts it) and
-hand-placed boxes clear the stone that background removal kept in the climb.
-
-```sh
-uv run --python 3.12 --with "rembg[cpu]" --with pillow --with numpy --with scipy \
-    --with scikit-image sprites/extract.py [climb walk jump jump-away kneel] --preview /tmp
-```
