@@ -14,8 +14,10 @@ with it. `preview.gif` in each animated set plays it.
 |---|---|---|---|---|
 | `climb/` | 11 | 388 × 642 | (219, 274) | the ledge's top-left corner |
 | `walk/` | 10, looping | 186 × 366 | (92, 338) | the floor, under his neck |
-| `jump/` | 6 | 224 × 460 | (114, 429) | the floor, under his neck |
-| `jump-away/` | 6 | 228 × 433 | (112, 401) | the floor, under his neck |
+| `jump-right/` | 6 | 224 × 460 | (114, 429) | the floor, under his neck |
+| `jump-left/` | 6 | 224 × 460 | (110, 429) | the floor, under his neck |
+| `jump-away-right/` | 6 | 228 × 433 | (112, 401) | the floor, under his neck |
+| `jump-away-left/` | 6 | 228 × 433 | (116, 401) | the floor, under his neck |
 | `kneel/` | 1 | 331 × 331 | (103, 291) | the floor, under his neck |
 
 About 7–8 fps reads well throughout.
@@ -47,12 +49,14 @@ anvil from `cloud-portrait.jpg` instead.
 
 ## jump, jump-away
 
-A jump on the spot, side view (`jump/`) and from behind (`jump-away/`):
-prepare, rising, peak, falling, landing, recovery. Airborne frames keep
-their height above the floor. The sheet's "takeoff" frames are left out (a
-sideways run the wrong way), and the back view's recovery is mirrored to
-face the way the rest of `jump-away/` does. From `sources/jump-sheet.png`,
-drawn heads kept.
+A jump on the spot, side view (`jump-right/`, `jump-left/`) and from behind
+(`jump-away-right/`, `jump-away-left/`): prepare, rising, peak, falling,
+landing, recovery. The `-right` sets are for when he's travelling right; the
+`-left` sets are the same frames mirrored, for travelling left. Airborne
+frames keep their height above the floor. The sheet's "takeoff" frames are
+left out (a sideways run the wrong way), and the back view's recovery is
+mirrored to face the way the rest of its set does. From
+`sources/jump-sheet.png`, drawn heads kept.
 
 ## kneel
 
@@ -68,5 +72,6 @@ hand-placed boxes clear the stone that background removal kept in the climb.
 
 ```sh
 uv run --python 3.12 --with "rembg[cpu]" --with pillow --with numpy --with scipy \
-    --with scikit-image sprites/extract.py [climb walk jump jump-away kneel] --preview /tmp
+    --with scikit-image sprites/extract.py [climb walk jump-right jump-left jump-away-right jump-away-left kneel] \
+    --preview /tmp
 ```

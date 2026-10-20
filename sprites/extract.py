@@ -1,7 +1,7 @@
 """One-off: cut the cloud man's sheets into sets of transparent, aligned frames.
 
     uv run --python 3.12 --with "rembg[cpu]" --with pillow --with numpy --with scipy \\
-        --with scikit-image sprites/extract.py [climb walk jump jump-away kneel] [--preview DIR]
+        --with scikit-image sprites/extract.py [climb walk jump-right jump-left ...] [--preview DIR]
 
 Writes sprites/<set>/NN-<name>.png (all sets by default). Every frame of a set
 shares one canvas, aligned so the set plays as a flipbook drawn at one spot,
@@ -9,6 +9,7 @@ and every set is scaled so his body is the same size. --preview DIR also writes
 <set>.gif and <set>-contact.png there for checking. See sprites/README.md.
 """
 
+import functools
 import sys
 import tomllib
 from pathlib import Path
@@ -182,6 +183,7 @@ def walk():
     return out, {"advance": advance}
 
 
+@functools.cache   # each row is cut once, for its -right and -left sets
 def jump(row):
     """sources/jump-sheet.png, one row: 1 side view, 2 back view. Drawn heads kept.
     Anchored on the row's floor under his neck, so airborne frames keep their height.
@@ -220,7 +222,17 @@ def kneel():
     return [("kneel", *scaled(img, (neck[0], soles), k))], {}
 
 
-SETS = {"climb": climb, "walk": walk, "jump": lambda: jump(1), "jump-away": lambda: jump(2), "kneel": kneel}
+def mirror(made):
+    """A set flipped left to right, each anchor with it: travelling the other way."""
+    frames, extra = made
+    return [(name, img.transpose(Image.FLIP_LEFT_RIGHT), (img.width - a[0], a[1]))
+            for name, img, a in frames], extra
+
+
+SETS = {"climb": climb, "walk": walk,
+        "jump-right": lambda: jump(1), "jump-left": lambda: mirror(jump(1)),
+        "jump-away-right": lambda: jump(2), "jump-away-left": lambda: mirror(jump(2)),
+        "kneel": kneel}
 
 
 # ---- output -------------------------------------------------------------------------
